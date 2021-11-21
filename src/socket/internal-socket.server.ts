@@ -1,32 +1,29 @@
-import { ErrorEvent, WebSocketServer } from 'ws'
-import { User } from '../dao/user'
+import { ErrorEvent, MessageEvent, WebSocket, WebSocketServer } from 'ws'
+import getUsers from '../utils/functions'
+
 
 
 export class InternalSocketServer {
     public ws: WebSocketServer;
-    user: User
     timeout: any
-    constructor(user: User) {
-        this.user = user
+    constructor() {
         this.ws = new WebSocketServer({
             port: 3001,
-            path:"/internal",
-            host:"localhost",
+            path: "/internal",
+            host: "localhost",
         })
-        console.log(this.ws.path)
-        console.log(this.ws.options)
+
         this.ws.addListener("open", this.onOpen.bind(this))
         this.ws.addListener("connection", this.onConnection.bind(this))
         this.ws.addListener("error", this.onError.bind(this))
         this.ws.addListener("close", this.onClose.bind(this))
-        this.ws.addListener("message", this.onMessage.bind(this))
     }
 
 
-    private emitUser() {
-        const interval: number = 10;
+    private emitUser(socket: WebSocket) {
+        const interval: number = 1 * 1000;
         this.timeout = setInterval(() => {
-            this.ws.emit("message", JSON.stringify(this.user.getUser()))
+            socket.send(getUsers(2))
         }, interval)
     }
 
@@ -34,9 +31,10 @@ export class InternalSocketServer {
         console.log("server open")
     }
 
-    private async onConnection() {
-        console.log("connected")
-        this.emitUser()
+    private async onConnection(socket: WebSocket) {
+        socket.onmessage = this.onMessage
+        console.log("onconnection")
+        this.emitUser(socket)
     }
 
     private onError(error: ErrorEvent) {
@@ -46,8 +44,9 @@ export class InternalSocketServer {
         clearInterval(this.timeout)
     }
 
-    private onMessage(message: string) {
-        console.log("from client %s", message)
+    private onMessage(message: MessageEvent) {
+        console.log("this is serve %s", message.data.toString())
+
     }
 
 }
