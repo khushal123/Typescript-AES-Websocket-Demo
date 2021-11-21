@@ -21,7 +21,7 @@ $ npm install
 ```
 
 ## Usage
-
+First, create .env and copy the content from .env.example, replace values as per your system. 
 To run the app:
 
 ```bash
