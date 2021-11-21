@@ -1,12 +1,11 @@
 import { FastifyPluginAsync } from "fastify"
 import { SocketStream } from "fastify-websocket";
+import { handleMessage } from "../../socket/emit.user";
 
-const internal: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
+const emit: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
     fastify.get('/', { websocket: true }, async function (connection: SocketStream, request) {
-        return {
-            test: "this is test"
-        }
+        return handleMessage(connection);
     })
 }
 
-export default internal;
+export default emit;

@@ -2,7 +2,6 @@ import { ErrorEvent, MessageEvent, WebSocket, WebSocketServer } from 'ws'
 import getUsers from '../utils/functions'
 
 
-
 export class InternalSocketServer {
     public ws: WebSocketServer;
     timeout: any

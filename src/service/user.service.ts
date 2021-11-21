@@ -17,7 +17,12 @@ export class UserService {
     }
 
     async getUsers(): Promise<any> {
-        return []
+        return [
+            {
+                "id": 1,
+                "name": "khushl"
+            }
+        ]
     }
 
 }

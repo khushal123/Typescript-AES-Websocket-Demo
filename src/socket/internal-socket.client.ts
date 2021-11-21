@@ -2,6 +2,7 @@ import { ErrorEvent, MessageEvent, WebSocket } from 'ws'
 import { SecretUser, TimeStampUser } from '../entity/user';
 import { compareHash, decryptAES256CTR } from '../utils/crypt'
 import { UserService } from '../service/user.service'
+import { sendToClient } from './emit.user'
 
 export class InternalSocketClient {
     public ws: WebSocket;
@@ -58,6 +59,7 @@ export class InternalSocketClient {
                 }
             }
             this.userService.saveUsers(users)
+            sendToClient(JSON.stringify(users))
         } catch (error) {
             console.error(error, "unable to decipher users")
         }
