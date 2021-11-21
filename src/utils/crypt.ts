@@ -1,5 +1,5 @@
-import { createHash, randomBytes, createCipheriv, createDecipheriv } from 'crypto'
-import { SecretUser } from '../entity/user';
+import { createHash, randomBytes, createCipheriv, createDecipheriv, timingSafeEqual } from 'crypto'
+import { SecretUser, User } from '../entity/user';
 
 const algorithmCTR = "aes-256-ctr";
 const key = randomBytes(32)
@@ -24,7 +24,6 @@ export function encryptAES256CTR(secretUser: string): string {
 
 export function decryptAES256CTR(secretUser: string): string {
     try {
-        console.log(secretUser)
         const text = secretUser.split(":");
         let iv = Buffer.from(text[0], 'hex');
         let encryptedText = Buffer.from(text[1], 'hex');
@@ -43,5 +42,13 @@ export function decryptAES256CTR(secretUser: string): string {
  * @param secretUser 
  */
 export function compareHash(secretUser: SecretUser) {
-    
+    const checksum = secretUser.secret_key
+    const user: User = {
+        name: secretUser.name,
+        origin: secretUser.origin,
+        destination: secretUser.destination
+    }
+    const newHash = genHashSHA256(JSON.stringify(user))
+    const isEqual = timingSafeEqual(Buffer.from(checksum), Buffer.from(newHash))
+    return isEqual
 }

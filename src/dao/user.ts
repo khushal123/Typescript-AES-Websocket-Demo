@@ -1,4 +1,4 @@
-import UserEntity, { SecretUser } from '../entity/user';
+import { User as UserEntity, SecretUser } from '../entity/user';
 import { names, cities } from './mock/data.json'
 import { genHashSHA256 } from '../utils/crypt'
 
@@ -19,7 +19,7 @@ export class User {
         return cities[this.randomNumber(0, this.citiesLength - 1)]
     }
 
-    getUser(): UserEntity {
+    getUser(): SecretUser {
         const user: UserEntity = {
             name: this.getRandomUserName(),
             origin: this.getRandomCity(),
@@ -31,5 +31,9 @@ export class User {
             secret_key: hash
         }
         return secretUser;
+    }
+    
+    async saveUsers(users: User[]) {
+
     }
 }

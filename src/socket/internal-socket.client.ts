@@ -1,13 +1,15 @@
 import { ErrorEvent, MessageEvent, WebSocket } from 'ws'
-import User, { SecretUser } from '../entity/user';
+import { User, SecretUser } from '../entity/user';
 import { compareHash, decryptAES256CTR } from '../utils/crypt'
 
 export class InternalSocketClient {
     public ws: WebSocket;
-    constructor() {
+    count: number
+    constructor(count: number) {
         this.ws = new WebSocket("ws://localhost:3001/internal", {
             protocol: "websocket"
         })
+        this.count = count
         this.ws.addListener("open", this.onOpen.bind(this))
 
         this.ws.onerror = this.onError.bind(this)
@@ -21,20 +23,30 @@ export class InternalSocketClient {
     }
 
     onOpen() {
-        this.ws.send("hii server from client")
+        this.ws.send(JSON.stringify({ count: this.count }))
     }
 
     onMessage(message: MessageEvent) {
+        console.log("received batch")
         try {
             const encryptedUsers = message.data.toString().split("|")
             const users: User[] = []
             for (let i in encryptedUsers) {
                 const decrypt = decryptAES256CTR(encryptedUsers[i])
-                const secretUser: SecretUser = JSON.parse(decrypt)
+                if (!decrypt) {
+                    continue
+                }
+                const secretUser: SecretUser = JSON.parse(JSON.parse(decrypt))
                 const isHashSame = compareHash(secretUser)
-                console.log(isHashSame)
+                if (isHashSame) {
+                    const user: User = {
+                        name: secretUser.name,
+                        destination: secretUser.destination,
+                        origin: secretUser.origin
+                    }
+                    users.push(user)
+                }
             }
-            console.log(users)
         } catch (error) {
             console.error(error, "unable to decipher users")
         }
