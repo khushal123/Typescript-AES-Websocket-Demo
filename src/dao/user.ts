@@ -32,8 +32,4 @@ export class User {
         }
         return secretUser;
     }
-    
-    async saveUsers(users: User[]) {
-
-    }
 }

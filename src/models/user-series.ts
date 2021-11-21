@@ -1,25 +1,25 @@
-import { Schema, model } from 'mongoose'
+import { Schema, model, Document } from 'mongoose'
 
-interface UserSeries {
-    date: string,
-    minute: number,
-    users: User[]
-}
-interface User {
+// export interface UserSeriesDocument extends Document {
+//     date: Date,
+//     users: User[]
+// }
+interface User extends Document {
     name: string,
     origin: string,
     destination: string,
     timestamp: Date
 }
 
-const schema = new Schema<UserSeries>({
-    date: String,
-    minute: {
-        type: Number,
-    },
-    users: Array
+const schema = new Schema<User>({
+    name: String,
+    origin: String,
+    destination: String,
+    timestamp: Date
 }, {
     timestamps: true
 })
 
-export default model<UserSeries>("UserSeries", schema, "user-series")
+const UserSeriesModel = model<User>("UserSeries", schema, "user-series")
+
+export default UserSeriesModel;
