@@ -1,55 +1,63 @@
 import { ErrorEvent, MessageEvent, WebSocket, WebSocketServer } from 'ws'
-import getUsers from '../utils/functions'
+import getUsers from '../utils/functions';
+
+let count: number = 2
+let delay: number = 1
+let receivedParams: boolean = false
+
+let timeout: any = null
 
 
-export class InternalSocketServer {
-    public ws: WebSocketServer;
-    timeout: any
-    count: number = 2
-    constructor() {
-        this.ws = new WebSocketServer({
-            port: 3001,
-            path: "/internal",
-            host: "localhost",
-        })
-        this.ws.addListener("open", this.onOpen.bind(this))
-        this.ws.addListener("connection", this.onConnection.bind(this))
-        this.ws.addListener("error", this.onError.bind(this))
-        this.ws.addListener("close", this.onClose.bind(this))
+function emitUser(socket: WebSocket) {
+    if (!receivedParams) {
+        return
     }
+    const interval: number = delay * 1000;
+    timeout = setInterval(() => {
+        socket.send(getUsers(count))
+    }, interval)
+}
 
+async function onOpen() {
+    console.log("server opOpen")
+}
 
-    private emitUser(socket: WebSocket) {
-        const interval: number = 1 * 1000;
-        this.timeout = setInterval(() => {
-            socket.send(getUsers(this.count))
-        }, interval)
+function onConnection(socket: WebSocket) {
+    console.log("onconnection")
+    socket.onmessage = onMessage
+}
+
+function onError(error: ErrorEvent) {
+    console.log(`error is ${error}`)
+}
+function onClose() {
+    if (!timeout) {
+        clearInterval(timeout)
     }
+}
 
-    private async onOpen() {
-        console.log("server open")
+
+function onMessage(message: MessageEvent) {
+    console.log("onMessage")
+    const data = JSON.parse(message.data.toString())
+    console.log(data.type && data.type === "params")
+    if (data.type && data.type === "params") {
+        count = Number(data.count)
+        delay = Number(data.delay)
+        receivedParams = true
+        emitUser(message.target)
     }
+}
 
-    private async onConnection(socket: WebSocket) {
-        socket.onmessage = this.onMessage
-        console.log("onconnection")
-        this.emitUser(socket)
-    }
 
-    private onError(error: ErrorEvent) {
-        console.log(`error is ${error}`)
-    }
-    private onClose() {
-        clearInterval(this.timeout)
-    }
-
-    private onMessage(message: MessageEvent) {
-        const data = JSON.parse(message.data.toString())
-        if (data.count) {
-            this.count = data.count
-        }
-        console.log("this is serve %s", message.data.toString())
-
-    }
-
+export function InternalSocketServer() {
+    const ws: WebSocketServer = new WebSocketServer({
+        port: 3001,
+        path: "/internal",
+        host: "localhost",
+    });
+    ws.addListener("open", onOpen)
+    ws.addListener("connection", onConnection)
+    ws.addListener("error", onError)
+    ws.addListener("close", onClose)
 }

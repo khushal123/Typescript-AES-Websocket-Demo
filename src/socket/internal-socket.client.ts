@@ -6,20 +6,23 @@ import { sendToClient } from './emit.user'
 
 export class InternalSocketClient {
     public ws: WebSocket;
-    count: number
+
     userService: UserService
     currentDateTime: Date
-    constructor(count: number) {
+    count: number = 2
+    delay: number = 1
+    constructor(delay: number, count: number) {
         this.ws = new WebSocket("ws://localhost:3001/internal", {
             protocol: "websocket"
         })
+
         this.userService = new UserService()
         this.count = count
         this.ws.addListener("open", this.onOpen.bind(this))
         this.currentDateTime = new Date()
         this.ws.onerror = this.onError.bind(this)
         this.ws.onmessage = this.onMessage.bind(this)
-
+        this.delay = delay
 
     }
 
@@ -28,7 +31,12 @@ export class InternalSocketClient {
     }
 
     onOpen() {
-        this.ws.send(JSON.stringify({ count: this.count }))
+        console.log("connection to server is open")
+        this.ws.send(JSON.stringify({
+            type: "params",
+            count: this.count,
+            "delay": this.delay
+        }))
     }
 
     onMessage(message: MessageEvent) {
