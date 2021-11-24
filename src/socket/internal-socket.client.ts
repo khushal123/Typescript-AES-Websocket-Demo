@@ -39,7 +39,7 @@ export class InternalSocketClient {
         }))
     }
 
-    onMessage(message: MessageEvent) {
+    async onMessage(message: MessageEvent) {
         console.log("received batch")
         try {
             const receivedDateTime = new Date();
@@ -66,8 +66,8 @@ export class InternalSocketClient {
                     users.push(user)
                 }
             }
-            this.userService.saveUsers(users)
-            sendToClient(JSON.stringify(users))
+            await this.userService.saveUsers(users)
+            sendToClient(this.count, this.userService)
         } catch (error) {
             console.error(error, "unable to decipher users")
         }

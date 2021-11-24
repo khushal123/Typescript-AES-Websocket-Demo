@@ -1,11 +1,12 @@
 import { SocketStream } from 'fastify-websocket'
-// import { UserService } from '../service/user.service'
-
+import { TimeSeriesAggregatedUsers } from '../entity/user';
+import { UserService } from '../service/user.service'
 let _conn: SocketStream;
 
-export async function sendToClient(message: string) {
+export async function sendToClient(count: number, userService: UserService) {
   if (_conn) {
-    _conn.socket.send(message)
+    const users: Array<TimeSeriesAggregatedUsers> = await userService.getUsers(count)
+    _conn.socket.send(JSON.stringify(users))
   }
 }
 
